@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Portal | Lightweight</title>
+    <meta name="description" content="A high-performance, low-bandwidth browser game portal.">
+    
+    <style>
+        /* 
+         * CSS RESET & VARIABLES 
+         * Using system colors and standard font stacks for maximum performance 
+         * and zero layout shift.
+         */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --link-color: #0000EE; /* Standard browser blue */
+            --border-color: #000000;
+            --hover-bg: #f0f0f0;
+            --card-border: 1px solid #000000;
+            --spacing-unit: 1rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 
+         * LAYOUT 
+         * Semantic structure with a fixed header and scrolling main content.
+         */
+        header {
+            border-bottom: 2px solid var(--border-color);
+            padding: var(--spacing-unit);
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            z-index: 10;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--spacing-unit);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+        }
+
+        /* 
+         * SEARCH FUNCTIONALITY 
+         * Standard input styling. No custom shadows or gradients.
+         */
+        .search-container {
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid var(--border-color);
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        #search-input:focus {
+            background-color: #fff;
+            border-color: var(--link-color);
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-unit);
+            min-height: 80vh;
+        }
+
+        /* 
+         * GAME GRID 
+         * Responsive CSS Grid. Collapses to single column on mobile.
+         */
+        #game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-unit);
+        }
+
+        /* 
+         * GAME CARD 
+         * Utilitarian design. No shadows, no rounded corners.
+         */
+        .game-card {
+            border: var(--card-border);
+            padding: var(--spacing-unit);
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            transition: background-color 0.1s ease; /* Minimal transition for hover state only */
+        }
+
+        .game-card:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 150px;
+            background-color: #ddd;
+            margin-bottom: var(--spacing-unit);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 2rem;
+            color: rgba(0,0,0,0.5);
+            border: 1px solid #000;
+        }
+
+        .game-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .play-btn {
+            margin-top: auto;
+            background-color: #fff;
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            padding: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+
+        .play-btn:hover, .play-btn:focus {
+            background-color: var(--text-color);
+            color: var(--bg-color);
+            outline: 2px solid var(--link-color);
+            outline-offset: 2px;
+        }
+
+        /* 
+         * MODAL OVERLAY 
+         * Simple fixed position overlay. No animations.
+         */
+        #game-modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            z-index: 100;
+            padding: var(--spacing-unit);
+            overflow: auto;
+        }
+
+        #game-modal.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 16/9;
+            background: #000;
+            border: 2px solid var(--border-color);
+            position: relative;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .close-btn {
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            background: #fff;
+            border: 2px solid var(--border-color);
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .close-btn:hover {
+            background: var(--text-color);
+            color: #fff;
+        }
+
+        /* 
+         * FOOTER 
+         */
+        footer {
+            border-top: 1px solid var(--border-color);
+            padding: var(--spacing-unit);
+            text-align: center;
+            font-size: 0.875rem;
+            margin-top: 2rem;
+        }
+
+        /* 
+         * RESPONSIVENESS 
+         */
+        @media (max-width: 600px) {
+            #game-grid {
+                grid-template-columns: 1fr; /* Single column on mobile */
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .search-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header role="banner">
+        <div class="header-content">
+            <h1>Game Portal</h1>
+            <div class="search-container">
+                <label for="search-input" class="visually-hidden" style="position:absolute; width:1px; height:1px; overflow:hidden;">Search Games</label>
+                <input type="text" id="search-input" placeholder="Filter games..." aria-label="Search games">
+            </div>
+        </div>
+    </header>
+
+    <main role="main">
+        <section id="game-grid" aria-label="Game Library">
+            <!-- Game cards will be injected here by JavaScript -->
+        </section>
+        <div id="no-results" style="display:none; padding: 2rem; text-align: center;">
+            <p>No games found matching your search.</p>
+        </div>
+    </main>
+
+    <!-- Modal for playing games -->
+    <div id="game-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <iframe id="game-frame" src="" title="Game Window" allowfullscreen></iframe>
+        </div>
+        <button id="close-modal" class="close-btn">Close Game</button>
+    </div>
+
+    <footer role="contentinfo">
+        <p>&copy; 2023 Game Portal. Built for performance.</p>
+    </footer>
+
+    <script>
+        /**
+         * GAME DATA
+         * Placeholder data for 6 generic games.
+         * 'color' is used for the thumbnail background to avoid external image requests.
+         * 'url' is a placeholder URL.
+         */
+        const games = [
+            { id: 1, title: "Snake", color: "#4CAF50", url: "about:blank" },
+            { id: 2, title: "Tetris Clone", color: "#2196F3", url: "about:blank" },
+            { id: 3, title: "Chess", color: "#FFC107", url: "about:blank" },
+            { id: 4, title: "Space Invaders", color: "#9C27B0", url: "about:blank" },
+            { id: 5, title: "Pong", color: "#F44336", url: "about:blank" },
+            { id: 6, title: "Minesweeper", color: "#607D8B", url: "about:blank" }
+        ];
+
+        // DOM Elements
+        const gridElement = document.getElementById('game-grid');
+        const searchInput = document.getElementById('search-input');
+        const modal = document.getElementById('game-modal');
+        const modalFrame = document.getElementById('game-frame');
+        const closeBtn = document.getElementById('close-modal');
+        const noResultsMsg = document.getElementById('no-results');
+
+        /**
+         * RENDER FUNCTION
+         * Generates HTML for game cards based on the data array.
+         * Uses document fragments for performance (single reflow).
+         */
+        function renderGames(filterText = '') {
+            gridElement.innerHTML = ''; // Clear current grid
+            const fragment = document.createDocumentFragment();
+            let hasResults = false;
+
+            const lowerFilter = filterText.toLowerCase();
+
+            games.forEach(game => {
+                // Filter Logic
+                if (game.title.toLowerCase().includes(lowerFilter)) {
+                    hasResults = true;
+                    
+                    const card = document.createElement('article');
+                    card.className = 'game-card';
+                    card.setAttribute('data-id', game.id);
+
+                    // Thumbnail Placeholder
+                    const thumb = document.createElement('div');
+                    thumb.className = 'game-thumbnail';
+                    thumb.style.backgroundColor = game.color;
+                    thumb.textContent = game.title.charAt(0); // First letter as icon
+
+                    // Title
+                    const title = document.createElement('h2');
+                    title.className = 'game-title';
+                    title.textContent = game.title;
+
+                    // Play Button
+                    const btn = document.createElement('button');
+                    btn.className = 'play-btn';
+                    btn.textContent = 'Play Now';
+                    btn.onclick = () => openGame(game.url, game.title);
+
+                    card.appendChild(thumb);
+                    card.appendChild(title);
+                    card.appendChild(btn);
+                    fragment.appendChild(card);
+                }
+            });
+
+            gridElement.appendChild(fragment);
+            
+            // Toggle "No Results" message
+            noResultsMsg.style.display = hasResults ? 'none' : 'block';
+        }
+
+        /**
+         * MODAL LOGIC
+         * Handles opening and closing the game overlay.
+         */
+        function openGame(url, title) {
+            // In a real scenario, 'url' would be the game source.
+            // For this demo, we inject a simple HTML string into the iframe to simulate a game load.
+            const gameContent = `
+                <body style="margin:0; display:flex; justify-content:center; align-items:center; height:100vh; background:#222; color:#fff; font-family:sans-serif;">
+                    <div style="text-align:center;">
+                        <h1>${title}</h1>
+                        <p>Game Loaded Successfully</p>
+                        <p style="font-size:0.8rem; color:#aaa;">(Placeholder Content)</p>
+                    </div>
+                </body>
+            `;
+            
+            // Write to iframe document
+            modalFrame.srcdoc = gameContent;
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            closeBtn.focus(); // Accessibility: Focus trap start
+        }
+
+        function closeGame() {
+            modal.classList.remove('active');
+            modalFrame.srcdoc = ''; // Clear iframe to stop any audio/processes
+            document.body.style.overflow = ''; // Restore scrolling
+            searchInput.focus(); // Return focus to search
+        }
+
+        /**
+         * EVENT LISTENERS
+         */
+        
+        // Real-time search filtering
+        searchInput.addEventListener('input', (e) => {
+            renderGames(e.target.value);
+        });
+
+        // Close modal on button click
+        closeBtn.addEventListener('click', closeGame);
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeGame();
+            }
+        });
+
+        // Initial Render
+        renderGames();
+
+    </script>
+</body>
+</html>
